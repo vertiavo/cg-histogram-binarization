@@ -4,9 +4,9 @@ from tkinter import Button, Frame, LEFT, Label, Menu, Tk, filedialog, messagebox
 
 from PIL import Image, ImageTk
 
-from constant import GAUSSIAN_BLUR_FILTER, HISTOGRAM_EQUALIZATION, HISTOGRAM_STRETCHING, MEDIAN_FILTER, \
-    SHARP_CUT_FILTER, SMOOTHING_FILTER, SOBEL_FILTER, WEAVE_MASKS
-from histogram import calculate_distribution, calculate_stretch_lut, check_max, check_min, calculate_equalization_lut
+from binarization import change_to_simple_greyscale, perform_manual_binarization
+from constant import HISTOGRAM_EQUALIZATION, HISTOGRAM_STRETCHING, MANUAL_BINARIZATION, MEDIAN_FILTER, SOBEL_FILTER
+from histogram import calculate_distribution, calculate_equalization_lut, calculate_stretch_lut, check_max, check_min
 
 
 def get_filename():
@@ -87,12 +87,9 @@ class Runner:
         create_button(self.image_normalization_panel, HISTOGRAM_EQUALIZATION, self.equalize_histogram)
 
     def create_binarization_panel(self):
-        create_button(self.binarization_panel, SMOOTHING_FILTER)
+        create_button(self.binarization_panel, MANUAL_BINARIZATION, self.manual_binarization)
         create_button(self.binarization_panel, MEDIAN_FILTER)
         create_button(self.binarization_panel, SOBEL_FILTER)
-        create_button(self.binarization_panel, SHARP_CUT_FILTER)
-        create_button(self.binarization_panel, GAUSSIAN_BLUR_FILTER)
-        create_button(self.binarization_panel, WEAVE_MASKS)
 
     def reset(self):
         self.image_copy = copy.copy(self.image)
@@ -152,6 +149,16 @@ class Runner:
         green_lut = calculate_equalization_lut(d_g)
         blue_lut = calculate_equalization_lut(d_b)
         self.apply_lut_tables(red_lut, green_lut, blue_lut)
+
+    def manual_binarization(self):
+        self.image_copy = change_to_simple_greyscale(self.image_copy)
+
+        threshold = ask_for_value("Enter threshold", self.original_label)
+
+        self.image_copy = perform_manual_binarization(self.image_copy, threshold)
+        photo_copy = ImageTk.PhotoImage(self.image_copy)
+        self.modified_label.config(image=photo_copy)
+        self.modified_label.image = photo_copy  # keep a reference!
 
 
 if __name__ == '__main__':
